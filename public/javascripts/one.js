@@ -83,10 +83,15 @@ setupFunctions["t1-create-signin"] = function() {
     var error = false;
 
     e.preventDefault();
+
+    // test for busy if(busy) return false
+    // if
+    
     leaveError();
 
     console.log('passes', email, password, password_confirm);
 
+    
     if (! email.length) {
       $(this.email)
         .addClass('error')
@@ -122,8 +127,10 @@ setupFunctions["t1-create-signin"] = function() {
     };
 
     if (flow.verify === 'link') {
+      makeBusy();
       send('create', creds)
         .then(function(r) {
+         makeNotBusy();
           console.log('response', r);
           if (r.success) {
             switchTo("verify");
