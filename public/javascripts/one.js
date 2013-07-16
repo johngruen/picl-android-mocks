@@ -2,34 +2,38 @@
 setupFunctions["t1-create-signin"] = function() {
   $('#dialog form input.email').on('blur', function(e) {
     var email = this.value;
+    $(this).removeClass('oops').removeClass('invalid').removeClass('missing');
     if (! validateEmail(email)) {
       return $(this).addClass('oops').addClass('invalid');
     }
-    $(this).removeClass('oops').removeClass('invalid').addClass('ok');
+    $(this).addClass('ok');
   });
 
-  $('#dialog form.create input.password').on('blur', function(e) {
+  $('#dialog form input.password').on('blur', function(e) {
     console.log(e);
     var password = this.value;
+    $(this).removeClass('oops').removeClass('invalid').removeClass('missing');
+
     if (! validatePassword(password)) {
       return $(this).addClass('oops').addClass('invalid');
     }
-    $(this).removeClass('oops').removeClass('invalid').addClass('ok');
+    $(this).addClass('ok');
   });
 
-  $('#dialog form.create input.confirm_password').on('blur', function(e) {
+  $('#dialog form input.confirm_password').on('blur', function(e) {
     var password = this.value;
+    $(this)
+      .removeClass('oops')
+      .removeClass('mismatch')
+      .removeClass('missing_confirm')
+      .removeClass('invalid');
     if (! validatePassword(password)) {
       return $(this).addClass('oops').addClass('invalid');
     }
     if (password !== this.form.password.value) {
       return $(this).addClass('oops').addClass('mismatch');
     }
-    $(this)
-      .removeClass('oops')
-      .removeClass('mismatch')
-      .removeClass('invalid')
-      .addClass('ok');
+    $(this).addClass('ok');
   });
 
   $('#dialog form.login').on("submit", function(e) {
@@ -37,6 +41,27 @@ setupFunctions["t1-create-signin"] = function() {
     e.preventDefault();
     var email = state.email = $("#dialog form.login input.email").val();
     var password = state.password = $("#dialog form.login input[name='password']").val();
+    var error = false;
+
+    if (! email.length) {
+      $(this.email)
+        .addClass('error')
+        .addClass('oops')
+        .addClass('missing');
+
+      error = true;
+    }
+
+    if (! password.length) {
+      $(this.password)
+        .addClass('error')
+        .addClass('oops')
+        .addClass('missing');
+
+      error = true;
+    }
+
+    if (error) return false;
 
     send('login', { email: state.email, password: state.password })
       .then(function(r) {
@@ -56,29 +81,37 @@ setupFunctions["t1-create-signin"] = function() {
     var email = state.email = $("#dialog form.create input.email").val();
     var password = state.password = $("#dialog form.create input[name='password']").val();
     var password_confirm = $("#dialog form.create input[name='password_confirm']").val();
+    var error = false;
 
     e.preventDefault();
     leaveError();
 
     console.log('passes', email, password, password_confirm);
 
+    if (! email.length) {
+      $(this.email)
+        .addClass('error')
+        .addClass('oops')
+        .addClass('missing');
+      error = true;
+    }
+
     if (! password.length) {
       $(this.password)
         .addClass('error')
-        .addClass('missing')
-        .attr('placeholder', 'Enter password here');
-
-      return;
+        .addClass('oops')
+        .addClass('missing');
+      error = true;
     }
     if (! password_confirm.length) {
       $(this.password_confirm)
         .addClass('error')
-        .addClass('missing')
-        .attr('placeholder', 'Repeat password here');
-      return;
+        .addClass('oops')
+        .addClass('missing_confirm');
+      error = true;
     }
 
-    if (password !== password_confirm) return false;
+    if (error || password !== password_confirm) return false;
 
     var creds = {
       email: state.email,
@@ -116,7 +149,28 @@ setupFunctions["t2-signed-in-page"] = function() {
     switchTo("preferences");
   });
 
-  /** Setup the <progress> JavaScript example **/
+  // show devices
+
+  send('accounts')
+  .then(function (r) {
+    var account = state.accounts[state.email];
+
+    console.log('devices', account.devices);
+
+    $('#dialog ul.devices').html();
+    Object.keys(account.devices).forEach(function(deviceId) {
+      var device = account.devices[deviceId];
+      $('#dialog ul.devices').append(
+        $('<li>')
+          .addClass(device.form)
+          //.html(device.name.bold())
+          //.addClass(device.syncing ? 'syncing' : 'notsyncing')
+      );
+    });
+
+  });
+
+  // show progress meter
   var progressMeter = $('#progress-meter')[0];
   progressMeter.min = 0;
   progressMeter.max = 100;
@@ -149,10 +203,23 @@ setupFunctions["t2-signed-in-page"] = function() {
 setupFunctions["verify"] = function() {
   $('#dialog .verify-email').html(state.email);
 
+  console.log('state', state);
+
+  var intv = setInterval(function () {
+    send('verified', { email: state.email })
+    .then(function (r) {
+      console.log('verify!!!', r);
+      if (r.success) {
+        switchTo('t2-signed-in-page');
+        clearInterval(intv);
+      }
+    });
+  }, 1000);
 };
 
 
 function validateEmail(email) {
+  if (!email.length) return true;
   if (email.length < 3) return false;
   if (email.indexOf('@') === -1) return false;
   return true;
@@ -166,9 +233,9 @@ setupFunctions["reset-password"] = function() {
     e.preventDefault();
 
     if (! email.length) {
-      //$('.reset-password .error').html(errors.missing_email);
-      return;
+      return enterError('.reset-password', 'enter_password');
     }
+
     if (! validateEmail(email)) {
       return enterError('.reset-password', 'invalid_email');
     }
@@ -218,7 +285,7 @@ setupFunctions["confirm-reset-code"] = function() {
 };
 
 function validatePassword(pass) {
-  if (pass.length < 8 || pass.length > 80) return false;
+  if (pass.length && pass.length < 8) return false;
   return true;
 }
 
@@ -226,30 +293,34 @@ setupFunctions["new-password"] = function() {
   $('#dialog form input.password').on('blur', function(e) {
     console.log(e);
     var password = this.value;
+    $(this).removeClass('oops').removeClass('invalid')
+    .removeClass('missing');
     if (! validatePassword(password)) {
       return $(this).addClass('oops').addClass('invalid');
     }
-    $(this).removeClass('oops').removeClass('invalid').addClass('ok');
+    $(this).addClass('ok');
   });
 
   $('#dialog form input.confirm_password').on('blur', function(e) {
     var password = this.value;
+    $(this)
+      .removeClass('oops')
+      .removeClass('mismatch')
+      .removeClass('missing_confirm')
+      .removeClass('invalid');
     if (! validatePassword(password)) {
       return $(this).addClass('oops').addClass('invalid');
     }
     if (password !== this.form.password.value) {
       return $(this).addClass('oops').addClass('mismatch');
     }
-    $(this)
-      .removeClass('oops')
-      .removeClass('mismatch')
-      .removeClass('invalid')
-      .addClass('ok');
+    $(this).addClass('ok');
   });
 
   $('#dialog form.new_password').on('submit', function(e) {
     e.preventDefault();
     leaveError();
+    var error = false;
 
     var password = this.password.value;
     var confirm_password = this.confirm_password.value;
@@ -257,20 +328,21 @@ setupFunctions["new-password"] = function() {
     if (! password.length) {
       $(this.password)
         .addClass('error')
-        .addClass('missing')
-        .attr('placeholder', 'Enter password here');
+        .addClass('oops')
+        .addClass('missing');
 
-      return;
+      error = true;
     }
+
     if (! confirm_password.length) {
       $(this.confirm_password)
         .addClass('error')
-        .addClass('missing')
-        .attr('placeholder', 'Repeat password here');
-      return;
+        .addClass('oops')
+        .addClass('missing_confirm');
+      error = true;
     }
 
-    if (password !== confirm_password) return false;
+    if (error || password !== confirm_password) return false;
 
     // send code email
     send('new_password', {
@@ -290,15 +362,16 @@ setupFunctions["new-password"] = function() {
   });
 };
 
+
 setupFunctions["reset-success"] = function() {
   var account = state.accounts[state.email];
 
   var devices = Object.keys(account.devices);
-  $('ul.devices').html();
+  $('#dialog ul.devices').html();
   if (devices.length) {
     devices.forEach(function(deviceId) {
       var device = account.devices[deviceId];
-      $('ul.devices').append(
+      $('#dialog ul.devices').append(
         $('<li>')
           .html(device.name.bold())
           .addClass(device.form)
@@ -316,13 +389,16 @@ setupFunctions["preferences"] = function() {
 
   console.log('devices', account.devices);
 
-  $('ul.devices').html();
+  $('#dialog ul.devices').html();
   Object.keys(account.devices).forEach(function(deviceId) {
+    console.log('device??', deviceId);
     var device = account.devices[deviceId];
-    $('ul.devices').append(
+    if (!device) return;
+    $('#dialog ul.devices').append(
       $('<li>')
         .html(device.name.bold())
         .addClass(device.form)
+        .attr('data-did', deviceId)
         .addClass(device.syncing ? 'syncing' : 'notsyncing')
     );
   });
@@ -370,12 +446,12 @@ $(function() {
       switchTo(page);
     });
   } else if (user && verified) {
-    switchTo("t2-signed-in-page");
+    switchTo("preferences");
   } else {
     switchTo("t1-create-signin");
   }
 
-  $("#notes-container").toggle();
+  //$("#notes-container").toggle();
 
   $("#dialog").on('click', 'a[data-page]', function(e) {
     var page = $(this).data('page');

@@ -36,13 +36,15 @@ function guid() {
 var errors = {
   invalid_password: 'Password must be between 8 and 80 characters',
   password_mismatch: 'These passwords don\'t match',
-  enter_password: 'Enter password here',
+  enter_password: 'Please enter a password',
   repeat_password: 'Repeat password here',
   missing_email: 'Enter email here',
   invalid_email: 'Please use a valid email address',
+  incorrect_password: 'Incorrect password. Please try again.',
   no_account: 'Try another email or <a href="#" class="create">Create an account</a>',
   incorrect_code: 'Try another email or <a href="#" class="create">Create an account</a>',
   expired_code: 'The code you entered has expired, <a href="#" class="resend">resend email</a>',
+  unverified: 'You need to verify this email first. <a href="#" class="resend">Click here</a> to resend the verification link.',
   too_many: 'You\'ve entered the incorrect code too many times.',
   exists: 'There is an existing account for this email.<br/>Re-enter email or Sign In.'
 };
@@ -54,7 +56,7 @@ function enterError(selector, message) {
 }
 
 function leaveError() {
-  $('#dialog div.error, #dialog input.error').removeClass('error');
+  $('#dialog div.error, #dialog input.error').removeClass('error').removeClass('oops').removeClass('ok');
 }
 
 function send(verb, body) {

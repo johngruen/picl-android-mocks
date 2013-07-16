@@ -49,7 +49,7 @@ var accounts = {
 };
 
 function isVerified(user) {
-  return accounts[user] && !accounts[user].token;
+  return !!(accounts[user] && !accounts[user].token);
 }
 
 function flowParams(params, session) {
@@ -140,6 +140,12 @@ app.post('/api/create',
     }
   });
 
+app.post('/api/verified',
+  function(req, res) {
+    var user = req.body.email;
+    return res.json({ success: isVerified(user) });
+  });
+
 app.post('/api/reverify',
   function(req, res) {
     var user = req.body.email;
@@ -167,8 +173,12 @@ app.post('/api/login',
       accounts[user].devices[device].lastSync = Date.now();
       req.session.user = user;
       res.json({ success: true });
+    } else if (accounts[user] && accounts[user].token) {
+      res.json(401, { success: false, message: "unverified" });
+    } else if (accounts[user]) {
+      res.json(401, { success: false, message: "incorrect_password" });
     } else {
-      res.json(401, { success: false, error: "Unauthorized" });
+      res.json(401, { success: false, message: "no_account" });
     }
   });
 
@@ -198,23 +208,21 @@ app.all('/confirm_email',
   function(req, res) {
     var email = req.query.email;
     var token = req.query.token;
-    var landing = req.query.verifyLanding;
-
-    console.log('landing', landing);
 
     if (!accounts[email]) {
       res.redirect('/flow');
+
     } else if (token === accounts[email].token) {
-      delete accounts[req.session.user].token;
+      delete accounts[email].token;
 
       if (!req.session.token) {
         // if not using the same firefox browser
         res.redirect('/flow/verified');
       } else {
-        res.redirect('/flow');
+        res.redirect('/flow/t2-signed-in-page');
       }
     } else {
-      res.json(400, { success: false, error: "BadToken" });
+      res.redirect('/flow/badlink');
     }
   });
 
