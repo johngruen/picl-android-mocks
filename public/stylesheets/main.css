@@ -101,6 +101,18 @@ p a {
 	color: #44c2ff
 }
 
+p a:active {
+  color:#E66000;
+}
+
+p a:visited {
+  color: #00539F;
+}
+
+p a:visited {
+
+}
+
 /*HELPERS*/
 #wrapper {
   width:100%;
