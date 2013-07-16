@@ -103,8 +103,7 @@ p a {
 
 /*HELPERS*/
 #wrapper {
-	width:320px;
-	height:600px;
+  width:100%;
 	margin: 0 auto;
 	background: #fff;
 	font-size:14px;
