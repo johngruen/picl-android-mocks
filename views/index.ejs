@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Firefox Home</title>
+
+    <script type="text/javascript" src="/javascripts/jquery-2.0.0.min.js"></script>
+    <link rel='stylesheet' href='/stylesheets/normalize.css' />
+    <link rel='stylesheet' href='/stylesheets/main.css' />
+   </head>
+   
+   <style>
+   	img#search {
+	   	position:relative;
+	   	top: 3.3em;
+   	}
+   </style>
+
+  <body>
+  	<div id="wrapper">
+
+	
+	<div class="full_width">
+    	<img id="search" class="aligncenter" src="/images/sync_graphic.png" width="100%" height="auto" alt=""/>
+    </div>
+    
+    <div class="bluebox">
+    	<div class="full_width">
+    		<div class="clearfix">
+	    		
+	    		<h2 class="banner" style="float:left">Sync</h2>
+	    		
+	    		<div id="picl-account" style="float:right">
+					<a href="/flow">Sign in</a>
+				</div>
+			
+    		</div>
+    		
+    		
+			
+    		<p>Flip the switch to activate Sync. It lets you access bookmarks and tabs from your other devices.</p>
+    	</div>
+    </div>
+
+    <div id="launcher">
+      <div id="menu">
+	  	
+      </div>
+    </div>
+	</div>
+    <script>
+    var user = <%- JSON.stringify(user || null) %>;
+    var verified = <%- JSON.stringify(verified || false) %>;
+    if (user && verified) {
+      $('#picl-account a').html('Signed in as ' + user);
+    }
+    </script>
+  </body>
+</html>
+
