@@ -13,7 +13,6 @@ setupFunctions["t1-create-signin"] = function() {
     console.log(e);
     var password = this.value;
     $(this).removeClass('oops').removeClass('invalid').removeClass('missing');
-
     if (! validatePassword(password)) {
       return $(this).addClass('oops').addClass('invalid');
     }
@@ -163,8 +162,8 @@ setupFunctions["t2-signed-in-page"] = function() {
       $('#dialog ul.devices').append(
         $('<li>')
           .addClass(device.form)
-          //.html(device.name.bold())
-          //.addClass(device.syncing ? 'syncing' : 'notsyncing')
+          .html(device.name.bold())
+          .addClass(device.syncing ? 'syncing' : 'notsyncing')
       );
     });
 
@@ -226,6 +225,12 @@ function validateEmail(email) {
 }
 
 setupFunctions["reset-password"] = function() {
+
+  $('.cancel').click(function(e) {
+    switchTo('t1-create-signin');
+    $("x-tabbox")[0].setSelectedIndex(1);
+  });
+
   $('#dialog form.reset').on('submit', function(e) {
     console.log('reset form!!!', e, this.email);
     var email = this.email.value;
@@ -233,7 +238,7 @@ setupFunctions["reset-password"] = function() {
     e.preventDefault();
 
     if (! email.length) {
-      return enterError('.reset-password', 'enter_password');
+      return enterError('.reset-password', 'enter_email');
     }
 
     if (! validateEmail(email)) {
@@ -351,6 +356,7 @@ setupFunctions["new-password"] = function() {
       confirm_password: confirm_password
     })
     .then(function (r) {
+      console.log('reset?', r);
       if (r.success) {
         // switch to confirm code page
         switchTo('reset-success');
@@ -383,11 +389,9 @@ setupFunctions["reset-success"] = function() {
 
 };
 
-setupFunctions["preferences"] = function() {
-  $('#dialog .email').html(state.email);
-  var account = state.accounts[state.email];
 
-  console.log('devices', account.devices);
+function showDevices() {
+  var account = state.accounts[state.email];
 
   $('#dialog ul.devices').html();
   Object.keys(account.devices).forEach(function(deviceId) {
@@ -402,6 +406,20 @@ setupFunctions["preferences"] = function() {
         .addClass(device.syncing ? 'syncing' : 'notsyncing')
     );
   });
+}
+
+setupFunctions["preferences"] = function() {
+  $('#dialog .email').html(state.email);
+
+  if (state.accounts) {
+    showDevices();
+  } else {
+    send('accounts', {})
+    .then(function(r) {
+      showDevices();
+    });
+  }
+
 
   $("button.logout").on("click", function() {
     var alert = document.createElement('x-alert');
@@ -440,8 +458,11 @@ $(function() {
   state.email = user;
   state.flow = flow;
 
+  console.log('state', state);
+
   if (page) {
     send("accounts").then(function(accounts) {
+      console.log('accounts???', accounts);
       state.accounts = accounts;
       switchTo(page);
     });

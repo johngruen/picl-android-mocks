@@ -104,7 +104,7 @@ p a {
 /*HELPERS*/
 #wrapper {
 	width:320px;
-	height:480px;
+	height:600px;
 	margin: 0 auto;
 	background: #fff;
 	font-size:14px;
@@ -128,7 +128,7 @@ p a {
 	padding: 1em 0;
 }
 
-.banner {
+.banner, x-alert h3 {
 	font-size: 1.5em; 
 	font-weight: 100;
 	margin: 0 auto;
@@ -178,7 +178,7 @@ input[type="text"], input[type="password"] {
 	clear:both;
 }
 
-input[type="submit"], button {
+input[type="submit"], button,  a.x-alert-secondary {
 	background: #d6d6d6;
 	display: block;
 	margin: 1.6em auto;
@@ -188,6 +188,8 @@ input[type="submit"], button {
 	border-bottom:1px solid #9d9d9d;
 	clear:both;
 	text-transform: capitalize;
+  border-radius: none;
+  -moz-border-radius:none;
 	
 }
 
@@ -271,11 +273,23 @@ input.oops.invalid.email + span:after {
 }
 
 input.oops.invalid + span:after {
-  content: 'Password must be between 8 and 80 characters.';
+  content: 'Password must be at least 8 characters.';
 }
 
 input.oops.mismatch + span:after {
   content: 'These passwords don\'t match.';
+}
+
+input[type="text"].oops.missing + span:after {
+  content: 'Missing email';
+}
+
+input[type="password"].oops.missing + span:after {
+  content: 'Missing password';
+}
+
+input[type="password"].oops.missing_confirm + span:after {
+  content: 'Repeat password';
 }
 
 p.error {

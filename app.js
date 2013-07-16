@@ -1,7 +1,7 @@
 
 /**
- * Module dependencies.
- */
+* Module dependencies.
+*/
 
 var express = require('express')
   , http = require('http')
@@ -63,7 +63,7 @@ function flowParams(params, session) {
     // the user opens it in a different browser/client.
     // - 'verified' verifies the email but tells the user to login using firefox
     // - 'oops' gives an error and tells the user to open the link
-    //   in firefox
+    // in firefox
     verifyLanding: params.verifyLanding || session.verifyLanding || 'verified'
   };
 }
@@ -274,7 +274,7 @@ app.post('/api/new_password',
     if (!accounts[email]) {
       res.json(404, { success: false, message: "no_account" });
 
-    } else if (password != confirm_password) {
+    } else if (password !== confirm_password) {
       res.json(400, { success: false, message: "mismatch" });
 
     } else if (password) {
